@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雨中的思念</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(to bottom, #0a0a1a, #1a1a3a);
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 下雨效果优化 */
+        .rain {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .drop {
+            position: absolute;
+            width: 1px;
+            height: clamp(15px, 3vh, 25px);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.1));
+            animation: rain linear infinite;
+        }
+
+        /* 地面水洼反光效果 */
+        .puddle {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 15%;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @keyframes rain {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(calc(100vh + 100px));
+                opacity: 0;
+            }
+        }
+
+        .welcome-screen {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, rgba(0,0,0,0.95) 0%, rgba(0,0,0,1) 100%);
+            z-index: 100;
+            transition: opacity 1s ease-out;
+        }
+
+        .welcome-screen h1 {
+            font-size: clamp(2rem, 8vw, 4rem);
+            margin-bottom: 30px;
+            text-align: center;
+            color: #ff3a5e;
+            text-shadow: 0 0 15px rgba(255, 58, 94, 0.6), 0 0 30px rgba(255, 58, 94, 0.3);
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        .enter-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #ff3a5e, #ff0033);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 58, 94, 0.6);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enter-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .enter-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 58, 94, 0.8);
+        }
+
+        .enter-btn:hover:before {
+            left: 100%;
+        }
+
+        .heart-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .heart {
+            position: relative;
+            width: clamp(150px, 30vw, 250px);
+            height: clamp(150px, 30vw, 250px);
+            background-color: #ff3a5e;
+            transform: rotate(45deg);
+            animation: heartbeat 1.5s infinite;
+            box-shadow: 0 0 50px rgba(255, 58, 94, 0.6), 0 0 100px rgba(255, 58, 94, 0.3);
+            opacity: 0.85;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+
+        .heart:before,
+        .heart:after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: inherit;
+            border-radius: 50%;
+            box-shadow: inherit;
+        }
+
+        .heart:before {
+            top: -50%;
+            left: 0;
+        }
+
+        .heart:after {
+            top: 0;
+            left: -50%;
+        }
+
+        .heart:hover {
+            transform: rotate(45deg) scale(1.08);
+            box-shadow: 0 0 70px rgba(255, 58, 94, 0.7), 0 0 150px rgba(255, 58, 94, 0.4);
+        }
+
+        .message {
+            position: absolute;
+            color: white;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 58, 94, 0.7), 0 0 20px rgba(255, 58, 94, 0.4);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.95;
+            padding: 20px;
+        }
+
+        .message span {
+            margin: 3px 0;
+            animation: float 3s infinite ease-in-out;
+            transition: all 0.3s;
+        }
+
+        .message span:hover {
+            transform: scale(1.2);
+            text-shadow: 0 0 15px rgba(255, 58, 94, 0.9), 0 0 30px rgba(255, 58, 94, 0.6);
+        }
+
+        /* 为每个字设置不同的浮动延迟 */
+        .message span:nth-child(1) { animation-delay: 0s; }
+        .message span:nth-child(2) { animation-delay: 0.2s; }
+        .message span:nth-child(3) { animation-delay: 0.4s; }
+        .message span:nth-child(4) { animation-delay: 0.6s; }
+        .message span:nth-child(5) { animation-delay: 0.8s; }
+        .message span:nth-child(6) { animation-delay: 1s; }
+        .message span:nth-child(7) { animation-delay: 1.2s; }
+
+        /* 点击爱心时的粒子效果 */
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.8;
+        }
+        
+        /* 音乐播放器样式 */
+        .music-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 30px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 20;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .music-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .music-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .music-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            -webkit-appearance: none;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ff3a5e;
+            cursor: pointer;
+        }
+        
+        .song-info {
+            color: white;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: rotate(45deg) scale(1); }
+            25% { transform: rotate(45deg) scale(1.1); }
+            50% { transform: rotate(45deg) scale(1); }
+            75% { transform: rotate(45deg) scale(1.1); }
+            100% { transform: rotate(45deg) scale(1); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 15px rgba(255, 58, 94, 0.6), 0 0 30px rgba(255, 58, 94, 0.3); }
+            50% { text-shadow: 0 0 20px rgba(255, 58, 94, 0.8), 0 0 40px rgba(255, 58, 94, 0.5); }
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="rain" id="rain"></div>
+    <div class="puddle"></div>
+    
+    <div class="welcome-screen" id="welcomeScreen">
+        <h1>马小莉天天开心</h1>
+        <button class="enter-btn" id="enterBtn">点击进入</button>
+    </div>
+
+    <div class="heart-container" id="heartContainer">
+        <div class="heart" id="heart"></div>
+        <div class="message">
+            <span>马</span>
+            <span>小</span>
+            <span>莉</span>
+            <span>天</span>
+            <span>天</span>
+            <span>开</span>
+            <span>心</span>
+        </div>
+    </div>
+    
+    <!-- 音乐播放器 -->
+    <div class="music-player">
+        <div class="music-controls">
+            <button class="music-btn" id="prevBtn">⏮</button>
+            <button class="music-btn" id="playPauseBtn">▶</button>
+            <button class="music-btn" id="nextBtn">⏭</button>
+        </div>
+        <div class="song-info" id="songInfo">加载中...</div>
+        <div class="volume-control">
+            <button class="music-btn" id="volumeBtn">🔊</button>
+            <input type="range" min="0" max="1" step="0.01" value="0.7" class="volume-slider" id="volumeSlider">
+        </div>
+    </div>
+
+    <audio id="backgroundMusic"></audio>
+
+    <script>
+        // 创建雨滴（优化数量和性能）
+        function createRain() {
+            const rainContainer = document.getElementById('rain');
+            const rainCount = window.innerWidth < 768 ? 80 : 150; // 移动端减少雨滴数量
+            
+            for (let i = 0; i < rainCount; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
+                
+                const left = Math.random() * 100;
+                const duration = Math.random() * 1 + 0.5;
+                const delay = Math.random() * 3;
+                const opacity = Math.random() * 0.5 + 0.3;
+                const height = Math.random() * 10 + 15; // 雨滴长度变化
+                
+                drop.style.left = `${left}vw`;
+                drop.style.animationDuration = `${duration}s`;
+                drop.style.animationDelay = `${delay}s`;
+                drop.style.opacity = opacity;
+                drop.style.height = `${height}px`;
+                
+                rainContainer.appendChild(drop);
+            }
+        }
+
+        // 颜色数组（更和谐的粉色/红色系）
+        const colors = [
+            '#ff3a5e', '#ff6b6b', '#ff8e8e', 
+            '#ff4778', '#ff2e63', '#ff5e87'
+        ];
+        let colorIndex = 0;
+
+        // 创建点击爱心的粒子效果
+        function createParticles(x, y) {
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机位置和方向
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 100 + 50;
+                const px = x + Math.cos(angle) * distance;
+                const py = y + Math.sin(angle) * distance;
+                
+                // 随机大小和动画
+                const size = Math.random() * 6 + 3;
+                const duration = Math.random() * 2 + 1;
+                
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.backgroundColor = colors[colorIndex];
+                particle.style.animation = `fall ${duration}s linear forwards`;
+                
+                document.body.appendChild(particle);
+                
+                // 动画结束后移除粒子
+                setTimeout(() => {
+                    particle.remove();
+                }, duration * 1000);
+            }
+        }
+        
+        // 音乐播放功能
+        // 音乐列表
+        const songs = [
+            {
+                url: "http://q4.vtoa.cc:8080/audio/download?time=1758038154586",
+                title: "雨夜思念",
+                artist: "自然之音"
+            },
+            {
+                url: "http://q2.v2i.cc:8080/audio/download?time=1758038134879",
+                title: "雨中旋律",
+                artist: "心灵钢琴"
+            },
+            {
+                url: "http://q4.vtoa.cc:8080/audio/download?time=1758038113797",
+                title: "思念如雨",
+                artist: "宁静吉他"
+            }
+        ];
+        
+        // 获取DOM元素
+        const audioPlayer = document.getElementById('backgroundMusic');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const songInfo = document.getElementById('songInfo');
+        
+        // 当前播放的歌曲索引
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let lastVolume = 0.7;
+        
+        // 初始化播放器
+        function initPlayer() {
+            // 随机选择一首歌开始播放
+            currentSongIndex = Math.floor(Math.random() * songs.length);
+            loadSong(currentSongIndex);
+            
+            // 设置音量
+            audioPlayer.volume = volumeSlider.value;
+            
+            // 自动播放
+            setTimeout(() => {
+                audioPlayer.play().catch(e => {
+                    console.log("自动播放被阻止，需要用户交互");
+                });
+            }, 1000);
+        }
+        
+        // 加载歌曲
+        function loadSong(index) {
+            const song = songs[index];
+            audioPlayer.src = song.url;
+            songInfo.textContent = `${song.title} - ${song.artist}`;
+        }
+        
+        // 播放/暂停
+        function togglePlayPause() {
+            if (isPlaying) {
+                audioPlayer.pause();
+                playPauseBtn.textContent = '▶';
+            } else {
+                audioPlayer.play();
+                playPauseBtn.textContent = '⏸';
+            }
+            isPlaying = !isPlaying;
+        }
+        
+        // 下一首
+        function playNext() {
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            loadSong(currentSongIndex);
+            if (isPlaying) {
+                audioPlayer.play();
+            }
+        }
+        
+        // 上一首
+        function playPrev() {
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            loadSong(currentSongIndex);
+            if (isPlaying) {
+                audioPlayer.play();
+            }
+        }
+        
+        // 切换静音
+        function toggleMute() {
+            if (audioPlayer.volume > 0) {
+                lastVolume = audioPlayer.volume;
+                audioPlayer.volume = 0;
+                volumeSlider.value = 0;
+                volumeBtn.textContent = '🔇';
+            } else {
+                audioPlayer.volume = lastVolume;
+                volumeSlider.value = lastVolume;
+                volumeBtn.textContent = '🔊';
+            }
+        }
+
+        // 初始化
+        window.onload = function() {
+            createRain();
+            
+            // 点击进入按钮
+            document.getElementById('enterBtn').addEventListener('click', function() {
+                const welcomeScreen = document.getElementById('welcomeScreen');
+                welcomeScreen.style.opacity = '0';
+                
+                setTimeout(() => {
+                    welcomeScreen.style.display = 'none';
+                    document.getElementById('heartContainer').style.display = 'flex';
+                }, 1000);
+            });
+            
+            // 点击爱心效果
+            document.getElementById('heart').addEventListener('click', function(e) {
+                // 改变颜色
+                colorIndex = (colorIndex + 1) % colors.length;
+                const newColor = colors[colorIndex];
+                
+                this.style.backgroundColor = newColor;
+                this.style.boxShadow = `0 0 50px ${newColor}80, 0 0 100px ${newColor}4d`;
+                
+                // 创建粒子效果（获取点击位置）
+                const rect = this.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                createParticles(x, y);
+            });
+            
+            // 初始化音乐播放器
+            initPlayer();
+            
+            // 事件监听
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            prevBtn.addEventListener('click', playPrev);
+            nextBtn.addEventListener('click', playNext);
+            volumeBtn.addEventListener('click', toggleMute);
+            volumeSlider.addEventListener('input', () => {
+                audioPlayer.volume = volumeSlider.value;
+                if (audioPlayer.volume > 0) {
+                    volumeBtn.textContent = '🔊';
+                    lastVolume = audioPlayer.volume;
+                } else {
+                    volumeBtn.textContent = '🔇';
+                }
+            });
+            
+            // 歌曲结束时自动播放下一首
+            audioPlayer.addEventListener('ended', playNext);
+        };
+    </script>
+</body>
+</html>
